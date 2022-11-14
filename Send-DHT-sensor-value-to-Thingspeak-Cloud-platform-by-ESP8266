@@ -1,0 +1,58 @@
+/* SNS I-HUB IOT training example1 by Dr.R.Kanmani
+Step1: go to file -> Preference -> In additional Board Manager URL, Paste this "http://arduino.esp8266.com/stable/package_esp8266com_index.json" -> Click OK
+Step2: From the previosu step, we can now add ESP libraries and include ESP Boards in BOards Manager.
+Step3: Go to Tools -> Manage Libraries -> Install the following Libraries:
+                              1) ThingSpeak by MathWorks
+                              2) DHT sensor Library by Adafruit
+                              3) Adafruit Unified Sensor by Adafruit
+                              4) Adafruit ESP8266 by Adafruit(Not necessary)
+                              5) Adafruit Sensor Calibration by Adafruit (not necessary)
+step4: Go to tools -> Boards -> Board Manager -> install "esp8266 by ESP8266 community"
+step5: After installing you can choose ESP boards. in tools -> boards, choose "NodeMCU 1.0(ESP-12E Module)"
+step6: connect node mcu to the USB port
+step7: check for the correct port and select the port. for checking the correct port :
+  -> Go to Device Manager and click on ports.
+  -> Find the port with Silicon labs cp210x..,
+  -> this name depends on the driver which your node MCU uses.
+  -> if not found manually install the driver.
+
+step8: compile the code and upload. Open the serial monitor.
+*/
+
+#include <ESP8266WiFi.h>
+#include <DHT.h>
+#include <ThingSpeak.h>
+
+DHT dht(D5, DHT11);
+
+WiFiClient client;
+
+long myChannelNumber = 1931928;
+const char myWriteAPIKey[] = "R1EQGE4QS6KE9XE6";
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  WiFi.begin("Kanmani", "12345678");
+  while(WiFi.status() != WL_CONNECTED)
+  {
+    delay(200);
+    Serial.print("..");
+  }
+  Serial.println();
+  Serial.println("NodeMCU is connected!");
+  Serial.println(WiFi.localIP());
+  dht.begin();
+  ThingSpeak.begin(client);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  Serial.println("Temperature: " + (String) t);
+  Serial.println("Humidity: " + (String) h);
+  ThingSpeak.writeField(myChannelNumber, 1, t, myWriteAPIKey);
+  ThingSpeak.writeField(myChannelNumber, 2, h, myWriteAPIKey);
+  delay(5000);
+}
